@@ -4,7 +4,7 @@ import com.ovoenergy.bootcamp.kafka.domain.{Account, Customer}
 import io.circe._
 import io.circe.generic.semiauto._
 
-trait AccountInstances {
+trait AccountInstances { _ : AcquisitionIdInstances with CustomerIdInstances with PostalAddressInstances =>
 
   implicit lazy val accountCirceEncoder: Encoder[Account] = deriveEncoder[Account]
 

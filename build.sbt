@@ -52,11 +52,13 @@ lazy val common = (project in file("common"))
   )
   .settings(
     libraryDependencies ++= Seq(
+      ciris.core,
       circe.core,
       circe.literal,
       circe.parser,
       circe.generic,
       kafka.clients,
+      akka.httpCore,
       dockerTestkit.core % Test,
       dockerTestkit.scalaTest % Test,
       dockerTestkit.implDockerJava % Test,
@@ -77,6 +79,7 @@ lazy val `account-service` = (project in file("account-service"))
   )
   .settings(
     libraryDependencies ++= Seq(
+      ciris.core,
       akka.actor,
       akka.stream,
       akka.parsing,
@@ -90,7 +93,12 @@ lazy val `account-service` = (project in file("account-service"))
       slf4j.api,
       log4j.api % Runtime,
       log4j.core % Runtime,
-      log4j.slf4jImpl % Runtime
+      log4j.slf4jImpl % Runtime,
+      akka.httpTestkit % Test,
+      dockerTestkit.core % Test,
+      dockerTestkit.scalaTest % Test,
+      dockerTestkit.implDockerJava % Test,
+      commsDockerTestkit % Test
     )
   )
 
@@ -104,6 +112,7 @@ lazy val `customer-service` = (project in file("customer-service"))
   )
   .settings(
     libraryDependencies ++= Seq(
+      ciris.core,
       akka.actor,
       akka.stream,
       akka.parsing,
@@ -117,7 +126,12 @@ lazy val `customer-service` = (project in file("customer-service"))
       slf4j.api,
       log4j.api % Runtime,
       log4j.core % Runtime,
-      log4j.slf4jImpl % Runtime
+      log4j.slf4jImpl % Runtime,
+      akka.httpTestkit % Test,
+      dockerTestkit.core % Test,
+      dockerTestkit.scalaTest % Test,
+      dockerTestkit.implDockerJava % Test,
+      commsDockerTestkit % Test
     )
   )
 
@@ -131,6 +145,7 @@ lazy val `acquisition-service` = (project in file("acquisition-service"))
   )
   .settings(
     libraryDependencies ++= Seq(
+      ciris.core,
       akka.actor,
       akka.stream,
       akka.parsing,
@@ -144,6 +159,11 @@ lazy val `acquisition-service` = (project in file("acquisition-service"))
       slf4j.api,
       log4j.api % Runtime,
       log4j.core % Runtime,
-      log4j.slf4jImpl % Runtime
+      log4j.slf4jImpl % Runtime,
+      akka.httpTestkit % Test,
+      dockerTestkit.core % Test,
+      dockerTestkit.scalaTest % Test,
+      dockerTestkit.implDockerJava % Test,
+      commsDockerTestkit % Test
     )
   )

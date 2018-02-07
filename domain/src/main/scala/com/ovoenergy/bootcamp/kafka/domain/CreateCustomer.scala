@@ -1,3 +1,5 @@
 package com.ovoenergy.bootcamp.kafka.domain
 
-case class CreateCustomer(name: String, emailAddress: EmailAddress)
+import com.ovoenergy.bootcamp.kafka.domain.Acquisition.AcquisitionId
+
+case class CreateCustomer(acquisitionId: AcquisitionId, name: String, emailAddress: EmailAddress)

@@ -1,6 +1,6 @@
 package com.ovoenergy.bootcamp.kafka.common.serde
 
-import com.ovoenergy.bootcamp.kafka.domain.CustomerId
+import com.ovoenergy.bootcamp.kafka.domain.Customer.CustomerId
 import io.circe._
 
 trait CustomerIdInstances {

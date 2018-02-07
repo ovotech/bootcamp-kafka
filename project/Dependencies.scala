@@ -3,6 +3,11 @@ import sbt._
 object Dependencies {
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.4"
 
+  object ciris {
+
+    val core = "is.cir" %% "ciris-core" % "0.6.2"
+  }
+
   object http4s {
 
     private val version = "0.18.0-M8"
@@ -79,6 +84,7 @@ object Dependencies {
     val stream = "com.typesafe.akka" %% "akka-stream" % version
     val parsing = "com.typesafe.akka" %% "akka-parsing" % httpVersion
     val http = "com.typesafe.akka" %% "akka-http" % httpVersion
+    val httpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % httpVersion
     val httpCore = "com.typesafe.akka" %% "akka-http-core" % httpVersion
     val httpCirce = "de.heikoseeberger" %% "akka-http-circe" % "1.19.0"
   }
