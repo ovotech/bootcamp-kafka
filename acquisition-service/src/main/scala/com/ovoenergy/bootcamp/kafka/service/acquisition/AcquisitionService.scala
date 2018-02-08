@@ -33,8 +33,7 @@ object AcquisitionService
   }
 
   def routes(acquisitionRepository: AcquisitionRepository,
-             createCustomer: CreateCustomer => Future[Customer],
-             createAccount: CreateAccount => Future[Account]): Route = {
+             produceAcquisition: Acquisition => Future[Unit]): Route = {
     extractMaterializer { implicit m =>
       extractActorSystem { implicit s =>
         extractExecutionContext { implicit e =>
@@ -53,26 +52,12 @@ object AcquisitionService
                     (post & entity(as[CreateAcquisition])) {
                       createAcquisition: CreateAcquisition =>
                         val acquisitionId = AcquisitionId.unique()
-                        val acquisitionFuture = for {
-                          _ <- createCustomer(
-                            CreateCustomer(
-                              acquisitionId,
-                              createAcquisition.customerName,
-                              createAcquisition.customerEmailAddress))
-                          _ <- createAccount(
-                            CreateAccount(acquisitionId,
-                                          createAcquisition.tariff,
-                                          createAcquisition.domicileAddress,
-                                          createAcquisition.billingAddress))
+                        val acquistion = createAcquisition.toAcquisition(acquisitionId)
 
-                        } yield createAcquisition.toAcquisition(acquisitionId)
-
-                        val response = acquisitionFuture.map { acquisition =>
-                          acquisitionRepository.put(acquisitionId, acquisition)
-                          StatusCodes.Created -> acquisition
-                        }
-
-                        complete(response)
+                        complete(produceAcquisition(acquistion).map{_ =>
+                          acquisitionRepository.put(acquisitionId, acquistion)
+                          acquistion
+                        })
                     }
                 } ~
                   (path(acquisitionIdMatcher) & get) { acquisitionId =>

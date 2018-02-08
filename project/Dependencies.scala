@@ -90,4 +90,12 @@ object Dependencies {
     val httpCore = "com.typesafe.akka" %% "akka-http-core" % httpVersion
     val httpCirce = "de.heikoseeberger" %% "akka-http-circe" % "1.19.0"
   }
+
+  object kafkaSerialization {
+    private val version = "0.3.4"
+
+    val core = "com.ovoenergy" %% "kafka-serialization-core" % version
+    val circe = "com.ovoenergy" %% "kafka-serialization-circe" % version
+    val avro4s = "com.ovoenergy" %% "kafka-serialization-avro4s" % version
+  }
 }
