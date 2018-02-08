@@ -12,7 +12,7 @@ case class Customer(id: CustomerId, acquisitionId: AcquisitionId, name: String, 
 
 object Customer {
 
-  case class CustomerId(value: String) extends AnyVal
+  case class CustomerId(value: String)
 
   object CustomerId {
 

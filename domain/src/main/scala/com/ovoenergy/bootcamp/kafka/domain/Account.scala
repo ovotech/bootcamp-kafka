@@ -16,7 +16,7 @@ case class Account(id: AccountId,
 
 object Account {
 
-  case class AccountId(value: String) extends AnyVal
+  case class AccountId(value: String)
 
   object AccountId {
 
