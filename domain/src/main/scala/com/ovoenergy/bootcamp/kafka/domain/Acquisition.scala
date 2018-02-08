@@ -7,7 +7,12 @@ import com.ovoenergy.bootcamp.kafka.domain.Acquisition.AcquisitionId
 
 import scala.util.hashing.MurmurHash3
 
-case class Acquisition(id: AcquisitionId, customer: Customer, account: Account)
+case class Acquisition(id: AcquisitionId,
+                       customerName: String,
+                       customerEmailAddress: EmailAddress,
+                       tariff: Tariff,
+                       domicileAddress: PostalAddress,
+                       billingAddress: PostalAddress)
 
 object Acquisition {
 

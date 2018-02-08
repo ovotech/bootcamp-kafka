@@ -1,4 +1,5 @@
 import Dependencies._
+import com.typesafe.sbt.packager.docker.Cmd
 
 lazy val commonSettings = List(
   organization := "com.ovoenergy.bootcamp",
@@ -20,19 +21,27 @@ lazy val commonSettings = List(
     "confluent-release" at "http://packages.confluent.io/maven/"
   ),
   libraryDependencies ++= Seq(
-    scalaTest % Test
+    scalaTest % Test,
+    scalaCheck % Test
   )
+)
+
+lazy val dockerSettings = List(
+  dockerBaseImage := "openjdk:8-alpine",
+  dockerUpdateLatest := true,
+  publish := (publish in Docker).value,
+  publishLocal := (publishLocal in Docker).value
 )
 
 lazy val `kafka-workshop` = (project in file("."))
   .aggregate(domain, common, `account-service`, `customer-service`, `acquisition-service`)
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .settings(
     name := "kafka-workshop"
   )
 
 lazy val domain = (project in file("domain"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .settings(
     name := "kafka-workshop-domain"
   )
@@ -45,8 +54,8 @@ lazy val domain = (project in file("domain"))
   )
 
 lazy val common = (project in file("common"))
-  .dependsOn(domain)
-  .settings(commonSettings: _*)
+  .dependsOn(domain % "test->test;compile->compile")
+  .settings(commonSettings)
   .settings(
     name := "kafka-workshop-common"
   )
@@ -71,9 +80,10 @@ lazy val common = (project in file("common"))
 
 
 lazy val `account-service` = (project in file("account-service"))
-  .dependsOn(domain, common)
-  .enablePlugins(BuildInfoPlugin)
-  .settings(commonSettings: _*)
+  .dependsOn(domain % "test->test;compile->compile", common % "test->test;compile->compile")
+  .enablePlugins(BuildInfoPlugin, JavaAppPackaging, DockerPlugin, AshScriptPlugin)
+  .settings(commonSettings)
+  .settings(dockerSettings)
   .settings(
     name := "kafka-workshop-account-service"
   )
@@ -99,14 +109,17 @@ lazy val `account-service` = (project in file("account-service"))
       dockerTestkit.scalaTest % Test,
       dockerTestkit.implDockerJava % Test,
       commsDockerTestkit % Test
-    )
+    ),
+    dockerExposedPorts := Seq(8080),
+    dockerCommands += Cmd("ENV", "HTTP_PORT", "8080")
   )
 
 
 lazy val `customer-service` = (project in file("customer-service"))
-  .dependsOn(domain, common)
-  .enablePlugins(BuildInfoPlugin)
-  .settings(commonSettings: _*)
+  .dependsOn(domain % "test->test;compile->compile", common % "test->test;compile->compile")
+  .enablePlugins(BuildInfoPlugin, JavaAppPackaging, DockerPlugin, AshScriptPlugin)
+  .settings(commonSettings)
+  .settings(dockerSettings)
   .settings(
     name := "kafka-workshop-customer-service"
   )
@@ -132,14 +145,19 @@ lazy val `customer-service` = (project in file("customer-service"))
       dockerTestkit.scalaTest % Test,
       dockerTestkit.implDockerJava % Test,
       commsDockerTestkit % Test
-    )
+    ),
+    dockerExposedPorts := Seq(8080),
+    dockerCommands += Cmd("ENV", "HTTP_PORT", "8080")
   )
 
 
 lazy val `acquisition-service` = (project in file("acquisition-service"))
-  .dependsOn(domain, common)
-  .enablePlugins(BuildInfoPlugin)
-  .settings(commonSettings: _*)
+  .dependsOn(domain % "it->test;test->test;compile->compile", common % "it->test;test->test;compile->compile")
+  .enablePlugins(BuildInfoPlugin, JavaAppPackaging, DockerPlugin, AshScriptPlugin)
+  .configs(IntegrationTest)
+  .settings(Defaults.itSettings)
+  .settings(commonSettings)
+  .settings(dockerSettings)
   .settings(
     name := "kafka-workshop-acquisition-service"
   )
@@ -160,10 +178,13 @@ lazy val `acquisition-service` = (project in file("acquisition-service"))
       log4j.api % Runtime,
       log4j.core % Runtime,
       log4j.slf4jImpl % Runtime,
-      akka.httpTestkit % Test,
-      dockerTestkit.core % Test,
-      dockerTestkit.scalaTest % Test,
-      dockerTestkit.implDockerJava % Test,
-      commsDockerTestkit % Test
-    )
+      akka.httpTestkit % "test,it",
+      dockerTestkit.core % "test,it",
+      dockerTestkit.scalaTest % "test,it",
+      dockerTestkit.implDockerJava % "test,it",
+      commsDockerTestkit % "test,it"
+    ),
+    dockerExposedPorts := Seq(8080),
+    dockerCommands += Cmd("ENV", "HTTP_PORT", "8080"),
+    (parallelExecution in (IntegrationTest, test)) := false
   )

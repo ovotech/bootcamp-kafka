@@ -1,17 +1,17 @@
-package com.ovoenergy.bootcamp.kafka.common
+package com.ovoenergy.bootcamp.kafka.service.acquisition
 
 import com.ovoenergy.comms.dockertestkit.{KafkaKit, ZookeeperKit}
 import com.whisk.docker.impl.dockerjava.DockerKitDockerJava
 import com.whisk.docker.scalatest.DockerTestKit
-import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, KafkaAdminClient, NewTopic}
+import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerConfig, ConsumerRecord, KafkaConsumer}
 import org.apache.kafka.clients.producer._
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
+import scala.concurrent.{Future, Promise}
 
 class KafkaConsumerSpec extends WordSpec
   with Matchers
@@ -28,7 +28,6 @@ class KafkaConsumerSpec extends WordSpec
   var producer: Producer[Key,Value] = _
   var consumer: Consumer[Key, Value] = _
   var adminClient: AdminClient = _
-
 
   override def beforeAll(): Unit = {
     super.beforeAll()

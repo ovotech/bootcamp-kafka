@@ -2,8 +2,9 @@ package com.ovoenergy.bootcamp.kafka.service.account
 
 import java.util.concurrent.ConcurrentHashMap
 
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.{Directives, HttpApp, PathMatcher1, Route}
+import akka.http.scaladsl.model.ContentTypes.`text/plain(UTF-8)`
+import akka.http.scaladsl.model.{HttpEntity, StatusCodes}
+import akka.http.scaladsl.server.{Directives, PathMatcher1, Route}
 import buildinfo.BuildInfo
 import com.ovoenergy.bootcamp.kafka.common.serde._
 import com.ovoenergy.bootcamp.kafka.domain.Account.AccountId
@@ -12,8 +13,7 @@ import de.heikoseeberger.akkahttpcirce.ErrorAccumulatingCirceSupport
 import io.circe.syntax._
 import io.circe.{Encoder, Json}
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import scala.collection.JavaConverters._
 
 object AccountService extends Directives with ErrorAccumulatingCirceSupport {
 
@@ -30,31 +30,36 @@ object AccountService extends Directives with ErrorAccumulatingCirceSupport {
 
   def routes(accountRepository: AccountRepository): Route =
     path("admin" / "ping") {
-      complete("pong")
+      complete(HttpEntity(`text/plain(UTF-8)`,"pong"))
     } ~
       path("admin" / "info") {
         complete(BuildInfo)
       } ~
       pathPrefix("api" / "v1") {
         pathPrefix("account") {
-          (pathEndOrSingleSlash & post) {
-            entity(as[CreateAccount]){ createAccount =>
-              val account = Account(
-                AccountId.unique(),
-                createAccount.acquisitionId,
-                createAccount.tariff,
-                createAccount.domicileAddress,
-                createAccount.billingAddress
-              )
-              accountRepository.put(account.id, account)
-              complete(StatusCodes.Created->account)
-            }
-          } ~
-            path(accountIdMatcher) { accountId =>
-              get {
-                Option(accountRepository.get(accountId)).fold(complete(StatusCodes.NotFound))(complete(_))
+          pathEndOrSingleSlash {
+            get {
+              complete(accountRepository.values.asScala)
+            } ~
+            (pathEndOrSingleSlash & post) {
+              entity(as[CreateAccount]){ createAccount =>
+                val account = Account(
+                  AccountId.unique(),
+                  createAccount.acquisitionId,
+                  createAccount.tariff,
+                  createAccount.domicileAddress,
+                  createAccount.billingAddress
+                )
+                accountRepository.put(account.id, account)
+                complete(StatusCodes.Created->account)
               }
             }
+          } ~
+          path(accountIdMatcher) { accountId =>
+            get {
+              Option(accountRepository.get(accountId)).fold(complete(StatusCodes.NotFound))(complete(_))
+            }
+          }
         }
       }
 

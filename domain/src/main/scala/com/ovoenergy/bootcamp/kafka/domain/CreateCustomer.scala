@@ -1,5 +1,14 @@
 package com.ovoenergy.bootcamp.kafka.domain
 
-import com.ovoenergy.bootcamp.kafka.domain.Acquisition.AcquisitionId
+import java.time.LocalDateTime
 
-case class CreateCustomer(acquisitionId: AcquisitionId, name: String, emailAddress: EmailAddress)
+import com.ovoenergy.bootcamp.kafka.domain.Acquisition.AcquisitionId
+import com.ovoenergy.bootcamp.kafka.domain.Customer.CustomerId
+
+case class CreateCustomer(acquisitionId: AcquisitionId,
+                          name: String,
+                          emailAddress: EmailAddress) {
+
+  def toCustomer(id: CustomerId, joinedOn: LocalDateTime): Customer =
+    Customer(id, acquisitionId, name, emailAddress, joinedOn)
+}

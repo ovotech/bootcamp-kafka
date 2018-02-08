@@ -15,7 +15,7 @@ import org.scalatest.{FunSuite, Matchers, WordSpec}
 
 import scala.concurrent.Future
 
-class AcquisitionServiceSpec extends  WordSpec with Matchers with RequestBuilding with ScalatestRouteTest with FailFastCirceSupport {
+class AcquisitionServiceSpec extends  WordSpec with Matchers with RequestBuilding with ScalatestRouteTest {
 
   def mockCreateCustomer(cc: CreateCustomer): Future[Customer] = Future.successful {
     Customer(CustomerId.unique(), cc.acquisitionId, cc.name, cc.emailAddress, LocalDateTime.now())
@@ -30,7 +30,7 @@ class AcquisitionServiceSpec extends  WordSpec with Matchers with RequestBuildin
       "return 200 with Pong body" in {
         Get("/admin/ping") ~> AcquisitionService.routes(new AcquisitionRepository, mockCreateCustomer, mockCreateAccount) ~> check {
           status shouldBe StatusCodes.OK
-          responseAs[Json] shouldBe Json.fromString("pong")
+          responseAs[String] shouldBe "pong"
         }
       }
     }

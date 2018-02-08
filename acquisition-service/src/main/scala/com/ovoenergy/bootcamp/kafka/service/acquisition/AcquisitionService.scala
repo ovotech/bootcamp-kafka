@@ -2,7 +2,8 @@ package com.ovoenergy.bootcamp.kafka.service.acquisition
 
 import java.util.concurrent.ConcurrentHashMap
 
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.ContentTypes.`text/plain(UTF-8)`
+import akka.http.scaladsl.model.{HttpEntity, StatusCodes}
 import akka.http.scaladsl.server.{Directives, PathMatcher1, Route}
 import buildinfo.BuildInfo
 import com.ovoenergy.bootcamp.kafka.common.serde._
@@ -11,18 +12,17 @@ import com.ovoenergy.bootcamp.kafka.domain._
 import de.heikoseeberger.akkahttpcirce.ErrorAccumulatingCirceSupport
 import io.circe.syntax._
 import io.circe.{Encoder, Json}
-
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
-
-
-object AcquisitionService extends Directives with ErrorAccumulatingCirceSupport {
+object AcquisitionService
+    extends Directives
+    with ErrorAccumulatingCirceSupport {
 
   type AcquisitionRepository = ConcurrentHashMap[AcquisitionId, Acquisition]
 
   val acquisitionIdMatcher: PathMatcher1[AcquisitionId] =
     Segment.map(AcquisitionId.apply)
-
 
   implicit val buildInfoEncoder: Encoder[BuildInfo.type] = Encoder.instance {
     bi =>
@@ -38,44 +38,46 @@ object AcquisitionService extends Directives with ErrorAccumulatingCirceSupport 
     extractMaterializer { implicit m =>
       extractActorSystem { implicit s =>
         extractExecutionContext { implicit e =>
-
           path("admin" / "ping") {
-            complete("pong")
+            complete(HttpEntity(`text/plain(UTF-8)`, "pong"))
           } ~
             path("admin" / "info") {
               complete(BuildInfo)
             } ~
             pathPrefix("api" / "v1") {
               pathPrefix("acquisition") {
-                (pathEndOrSingleSlash & post) {
-                  entity(as[CreateAcquisition]) {
-                    createAcquisition: CreateAcquisition =>
+                pathEndOrSingleSlash {
+                  get {
+                    complete(acquisitionRepository.values.asScala)
+                  } ~
+                    (post & entity(as[CreateAcquisition])) {
+                      createAcquisition: CreateAcquisition =>
+                        val acquisitionId = AcquisitionId.unique()
+                        val acquisitionFuture = for {
+                          _ <- createCustomer(
+                            CreateCustomer(
+                              acquisitionId,
+                              createAcquisition.customerName,
+                              createAcquisition.customerEmailAddress))
+                          _ <- createAccount(
+                            CreateAccount(acquisitionId,
+                                          createAcquisition.tariff,
+                                          createAcquisition.domicileAddress,
+                                          createAcquisition.billingAddress))
 
-                      val acquisitionId = AcquisitionId.unique()
-                      val acquisitionFuture = for {
-                        customer <- createCustomer(
-                          CreateCustomer(
-                            acquisitionId,
-                            createAcquisition.customerName,
-                            createAcquisition.customerEmailAddress))
-                        account <- createAccount(
-                          CreateAccount(acquisitionId,
-                            createAcquisition.tariff,
-                            createAcquisition.domicileAddress,
-                            createAcquisition.billingAddress))
+                        } yield createAcquisition.toAcquisition(acquisitionId)
 
-                      } yield Acquisition(acquisitionId, customer, account)
+                        val response = acquisitionFuture.map { acquisition =>
+                          acquisitionRepository.put(acquisitionId, acquisition)
+                          StatusCodes.Created -> acquisition
+                        }
 
-                      val response = acquisitionFuture.map { acquisition =>
-                        acquisitionRepository.put(acquisitionId, acquisition)
-                        StatusCodes.Created -> acquisition
-                      }
-
-                      complete(response)
-                  }
+                        complete(response)
+                    }
                 } ~
                   (path(acquisitionIdMatcher) & get) { acquisitionId =>
-                    Option(acquisitionRepository.get(acquisitionId)).fold(complete(StatusCodes.NotFound))(complete(_))
+                    Option(acquisitionRepository.get(acquisitionId))
+                      .fold(complete(StatusCodes.NotFound))(complete(_))
                   }
               }
             }

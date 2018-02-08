@@ -3,6 +3,8 @@ import sbt._
 object Dependencies {
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.4"
 
+  lazy val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.13.5"
+
   object ciris {
 
     val core = "is.cir" %% "ciris-core" % "0.6.2"

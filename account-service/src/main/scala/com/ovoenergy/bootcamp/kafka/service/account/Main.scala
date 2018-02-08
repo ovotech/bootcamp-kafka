@@ -5,7 +5,10 @@ import ciris.{env, loadConfig, prop}
 import ciris.syntax._
 import com.ovoenergy.bootcamp.kafka.service.account.AccountService.AccountRepository
 
-object Main extends HttpApp {
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
+object Main extends HttpApp with App {
 
   override protected def routes: Route = AccountService.routes(new AccountRepository)
 
